@@ -21,6 +21,7 @@
     <arg name="camera" default="false"/>
     <arg name="/camera/raw" default="false"/>
     <arg name="/camera/raw/rect" default="false"/>
+    <arg name="/camera/raw/rect-nodelet" default="false"/>
 
 	<arg name="anti_instagram" default="false"/>
 
@@ -85,9 +86,19 @@
 
                 <!-- Image Rectification -->
                 <remap from="image_raw" to="camera_node/image/raw"/>
-                <remap from="camera_info" to="camera_node/raw_camera_info"/>
+                <remap from="camera_info" to="camera_node/camera_info"/>
                 <remap from="image_rect_color" to="camera_node/image/rect" />
                 <include file="$(find image_processing)/launch/image_rectification.launch">
+                    <arg name="veh" value="$(arg veh)"/>
+                </include>
+            </group>
+            <group if="$(arg /camera/raw/rect-nodelet)">
+                <!-- Image Decoding remappings-->
+                <remap from="decoder_nodelet/compressed_image" to="camera_node/image/compressed"/>
+                <remap from="decoder_nodelet/image/raw" to="camera_node/image/raw"/>
+                <!-- Image Rectification remappings-->
+                <remap from="camera_node/image/camera_info" to="camera_node/camera_info"/>
+                <include file="$(find image_processing)/launch/decoding_rectification.launch">
                     <arg name="veh" value="$(arg veh)"/>
                 </include>
             </group>
@@ -235,7 +246,7 @@
     <group if="$(arg apriltags)">
         <!-- Detector node -->
         <remap from="image_rect" to="camera_node/image/rect" />
-        <remap from="camera_info" to="camera_node/raw_camera_info" />
+        <remap from="camera_info" to="camera_node/camera_info" />
         <include file="$(find apriltag)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
         </include>

@@ -1,0 +1,9 @@
+<library path="libimage_processing">
+  <class name="image_processing/decoder"
+         type="image_processing::DecoderNodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Nodelet for decompressing the image
+    </description>
+  </class>
+</library>
