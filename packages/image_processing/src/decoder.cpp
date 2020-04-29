@@ -12,33 +12,25 @@ namespace image_processing
 
     class DecoderNodelet : public nodelet::Nodelet
     {
+    ros::NodeHandle nh_;
+    image_transport::ImageTransport it_;
+    image_transport::Subscriber image_sub_;
+    image_transport::Publisher image_pub_;
+
     public:
-        DecoderNodelet()
+        DecoderNodelet() 
+          : it_(nh_)
         {}
 
     private:
         virtual void onInit()
         {
-        ros::NodeHandle& private_nh = getPrivateNodeHandle();
-        //image_transport::ImageTransport it(nh);
-        pub = private_nh.advertise<sensor_msgs::Image>("image/raw", 1);
-        sub = private_nh.subscribe("compressed_image", 10, &DecoderNodelet::imageCallback, this);
+        image_transport::TransportHints hints("compressed");
+        image_pub_ = it_.advertise("image/raw", 1);
+        image_sub_ = it_.subscribe("image", 1, &DecoderNodelet::imageCallback, this, hints);
+        
         }
-
-
-        void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg)
-        {
-        cv::Mat image = cv::imdecode(cv::Mat(msg->data),1);//convert compressed image data to cv::Mat
-        cv_bridge::CvImage raw_msg; //= cv_bridge::CvImage(msg->header, "bgr8", image.toImageMsg();
-        raw_msg.header = msg->header;
-        raw_msg.header.seq = msg->header.seq;
-        raw_msg.encoding = sensor_msgs::image_encodings::BGR8 ; // Or whatever
-        raw_msg.image = image;
-        pub.publish(raw_msg.toImageMsg());
-        }
-        ros::Publisher pub;
-        ros::Subscriber sub;
-
+        void imageCallback(const sensor_msgs::ImageConstPtr& msg){image_pub_.publish(msg);}
     };
 
     PLUGINLIB_EXPORT_CLASS(image_processing::DecoderNodelet, nodelet::Nodelet)

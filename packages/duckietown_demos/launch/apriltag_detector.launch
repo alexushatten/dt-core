@@ -9,10 +9,12 @@
 		<arg name="visualization" value="true" />
         <arg name="verbose" value="$(arg verbose)" />
 
+		<arg name="demo_name" default="apriltag_demo"/>
+
 		<!-- Basic functionalities -->
 		<arg name="camera" value="true"/>
 		<arg name="/camera/raw" value="true"/>
-		<arg name="/camera/raw/rect" value="true"/>
+		<arg name="/camera/raw/rect-nodelet" value="true"/>
 		<arg name="apriltags" value="true" />
 	</include>
 </launch>

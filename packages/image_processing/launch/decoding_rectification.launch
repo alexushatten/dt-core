@@ -4,12 +4,13 @@
 
   <group ns="$(arg veh)">
     <node pkg="nodelet" type="nodelet" name="nodelet_manager"  args="manager" output="screen"/>
-
+    <!--node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=camera_node/image raw out:=camera_node/image/raw" / -->
     <node pkg="nodelet" type="nodelet" name="decoder_nodelet" args="load image_processing/decoder nodelet_manager" output="screen"/>   
 
     <node pkg="nodelet" type="nodelet" name="rectify_nodelet" args="load image_proc/rectify nodelet_manager" output="screen">
       <remap from="image_mono" to="camera_node/image/raw" />
       <remap from="image_rect" to="camera_node/image/rect" />
+      <param name="queue_size" value="400"/>
     </node> 
   </group>    
 </launch>

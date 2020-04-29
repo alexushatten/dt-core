@@ -94,8 +94,8 @@
             </group>
             <group if="$(arg /camera/raw/rect-nodelet)">
                 <!-- Image Decoding remappings-->
-                <remap from="decoder_nodelet/compressed_image" to="camera_node/image/compressed"/>
-                <remap from="decoder_nodelet/image/raw" to="camera_node/image/raw"/>
+                <remap from="image/compressed" to="camera_node/image/compressed"/>
+                <remap from="image/raw" to="camera_node/image/raw"/>
                 <!-- Image Rectification remappings-->
                 <remap from="camera_node/image/camera_info" to="camera_node/camera_info"/>
                 <include file="$(find image_processing)/launch/decoding_rectification.launch">

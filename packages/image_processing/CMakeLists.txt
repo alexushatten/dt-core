@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   nodelet
   nodelet_topic_tools
   cv_bridge
+  image_transport
 )
 
 include_directories(${catkin_INCLUDE_DIRS})
