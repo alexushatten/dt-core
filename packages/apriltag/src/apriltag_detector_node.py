@@ -15,6 +15,8 @@ from duckietown_msgs.msg import AprilTagDetectionArray, AprilTagDetection
 from sensor_msgs.msg import Image, CameraInfo, CompressedImage
 from geometry_msgs.msg import Transform, Vector3, Quaternion
 
+from image_geometry import PinholeCameraModel
+
 
 class AprilTagDetector(DTROS):
 
@@ -31,6 +33,7 @@ class AprilTagDetector(DTROS):
         self.refine_edges = rospy.get_param('~refine_edges', 1)
         self.decode_sharpening = rospy.get_param('~decode_sharpening', 0.25)
         self.tag_size = rospy.get_param('~tag_size', 0.065)
+        
         # dynamic parameter
         self.detection_freq = DTParam(
             '~detection_freq',
@@ -54,6 +57,8 @@ class AprilTagDetector(DTROS):
         )
         # create a CV bridge object
         self._bridge = CvBridge()
+        #Find camera parameters from intrinsics file
+        self.pcm = PinholeCameraModel()
         # create subscribers
         self._img_sub = rospy.Subscriber('image_rect', Image, self._img_cb)
         self._cinfo_sub = rospy.Subscriber('camera_info', CameraInfo, self._cinfo_cb)
@@ -78,6 +83,10 @@ class AprilTagDetector(DTROS):
         if not self._detection_reminder.is_time(frequency=self.detection_freq.value):
             return
         # ---
+        #Decode image and greyscale it
+        #raw_image =  self.decode_image(data)
+        #Rectify image
+        #img = self.rectify_image(raw_image)
         # turn image message into grayscale image
         img = self._bridge.imgmsg_to_cv2(data, desired_encoding='mono8')
         # detect tags
@@ -166,8 +175,23 @@ class AprilTagDetector(DTROS):
         K = np.array(data.K).reshape((3, 3))
         self._camera_parameters = (K[0, 0], K[1, 1], K[0, 2], K[1, 2])
         self._camera_frame = data.header.frame_id
+
+        #get camera_params for rectification
+        self.pcm.fromCameraInfo(data)
+        self.mapx = np.ndarray(shape=(self.pcm.height, self.pcm.width, 1), dtype='float32')
+        self.mapy = np.ndarray(shape=(self.pcm.height, self.pcm.width, 1), dtype='float32')
+        self.mapx, self.mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R, self.pcm.P, (self.pcm.width, self.pcm.height), cv2.CV_32FC1, self.mapx, self.mapy)
         # once we got the camera info, we can stop the subscriber
         self._cinfo_sub.shutdown()
+
+    def decode_image(self, image_compressed):
+        image_raw = self._bridge.compressed_imgmsg_to_cv2(image_compressed, desired_encoding='mono8')
+        return image_raw
+
+    def rectify_image(self, image_raw):
+        '''Undistort image'''
+        return cv2.remap(image_raw, self.mapx, self.mapy, cv2.INTER_LANCZOS4)
+
 
 
 def _matrix_to_quaternion(R):
