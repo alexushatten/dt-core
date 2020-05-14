@@ -33,7 +33,6 @@ class AprilTagDetector(DTROS):
         self.refine_edges = rospy.get_param('~refine_edges', 1)
         self.decode_sharpening = rospy.get_param('~decode_sharpening', 0.25)
         self.tag_size = rospy.get_param('~tag_size', 0.065)
-        
         # dynamic parameter
         self.detection_freq = DTParam(
             '~detection_freq',
@@ -46,6 +45,9 @@ class AprilTagDetector(DTROS):
         # camera info
         self._camera_parameters = None
         self._camera_frame = None
+        # Check if use_backgroundsubtraction
+        self.use_background_subratction = rospy.get_param('~use_background_subratction', False)
+        self.previousCvImage = None
         # create detector object
         self._at_detector = Detector(
             families=self.family,
@@ -60,7 +62,7 @@ class AprilTagDetector(DTROS):
         #Find camera parameters from intrinsics file
         self.pcm = PinholeCameraModel()
         # create subscribers
-        self._img_sub = rospy.Subscriber('image_rect', Image, self._img_cb)
+        self._img_sub = rospy.Subscriber('image_rect', Image, self._img_cb, queue_size=1)
         self._cinfo_sub = rospy.Subscriber('camera_info', CameraInfo, self._cinfo_cb)
         # create publishers
         self._img_pub = rospy.Publisher(
@@ -89,7 +91,12 @@ class AprilTagDetector(DTROS):
         #img = self.rectify_image(raw_image)
         # turn image message into grayscale image
         img = self._bridge.imgmsg_to_cv2(data, desired_encoding='mono8')
-        # detect tags
+        # Do background_subtraction
+        if self.use_background_subratction:
+            picture_changed = self.background_subtraction(img)
+            if not picture_changed:
+                return
+        # detect tags   
         tags = self._at_detector.detect(img, True, self._camera_parameters, self.tag_size)
         # draw the detections on an image (if needed)
         if self._img_pub.anybody_listening() and not self._img_pub_busy:
@@ -143,6 +150,23 @@ class AprilTagDetector(DTROS):
         # update healthy frequency metadata
         self._tag_pub.set_healthy_freq(self._img_sub.get_frequency())
         self._img_pub.set_healthy_freq(self._img_sub.get_frequency())
+
+    def background_subtraction (self, currRawImage):
+        cvImage = currRawImage[20:-10, 25:-15]
+        if self.previousCvImage is not None:
+            if(self.previousCvImage.shape != cvImage.shape):
+                self.log("Previous image and current image dont have the same dimensions : %s VS %s" % (
+                    str(self.previousCvImage.shape), str(cvImage.shape)))
+            else:
+                maskedImage = cv2.absdiff(
+                    self.previousCvImage, cvImage)
+                _, maskedImage = cv2.threshold(
+                    maskedImage, 30, 255, cv2.THRESH_BINARY)
+                maskNorm = cv2.norm(maskedImage)
+                if maskNorm < 3000:
+                    return False
+        self.previousCvImage = cvImage
+        return True
 
     def _publish_detections_image(self, img, tags):
         # get a color buffer from the BW image
