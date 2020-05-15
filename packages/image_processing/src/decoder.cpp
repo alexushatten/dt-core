@@ -25,7 +25,7 @@ namespace image_processing
     private:
         virtual void onInit()
         {
-        image_transport::TransportHints hints("compressed");
+        image_transport::TransportHints hints("compressed",ros::TransportHints().tcpNoDelay(true), getPrivateNodeHandle());
         image_pub_ = it_.advertise("image/raw", 1);
         image_sub_ = it_.subscribe("image", 1, &DecoderNodelet::imageCallback, this, hints);
         
