@@ -48,6 +48,10 @@ CMD ["bash", "-c", "${LAUNCHFILE}"]
 LABEL org.duckietown.label.module.type "${REPO_NAME}"
 ENV DT_MODULE_TYPE "${REPO_NAME}"
 
+ENV DISPLAY :0
+ENV QT_X11_NO_MITSHM 1
+ENV MESA_GL_VERSION_OVERRIDE=3.3
+
 # store module metadata
 ARG ARCH
 ARG MAJOR
@@ -61,6 +65,8 @@ LABEL org.duckietown.label.base.image "${BASE_IMAGE}:${BASE_TAG}"
 # <==================================================
 
 ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
+
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility,display
 
 # maintainer
 LABEL maintainer="Andrea F. Daniele (afdaniele@ttic.edu)"

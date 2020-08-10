@@ -1,0 +1,8 @@
+<launch>
+	<arg name="node_name" value="pose_estimation_test"/>
+	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
+
+	<node pkg="pose_estimation_test" type="pose_estimation_test.py"  name="$(arg node_name)" output="screen">
+	</node>
+
+</launch>

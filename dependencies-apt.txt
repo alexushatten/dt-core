@@ -11,3 +11,11 @@ python-sklearn
 python-pygame
 iputils-ping
 python-tk
+python-opengl
+python-qt4
+python-qt4-gl
+libglu1-mesa-dev
+yum 
+freeglut3-dev
+mesa-common-dev
+libmagickwand-dev

@@ -5,3 +5,6 @@ reprep
 # ATags3 Python bindings
 # TODO: this is disabled, we build it ourself to test the recitification inside the apriltag
 #dt_apriltags
+pyopengl
+PyGLM==0.4.8b1
+Wand
